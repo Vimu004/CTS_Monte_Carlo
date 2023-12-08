@@ -13,6 +13,13 @@ if TYPE_CHECKING:
     from io import TextIOWrapper
     from typing import Optional, Literal, Union
 
+COLOR_ORANGE = "\033[93m"
+COLOR_BLUE = "\033[94m"
+COLOR_GREEN = "\033[92m"
+COLOR_RED = "\033[91m"
+COLOR_PURPLE = "\033[95m"
+COLOR_RESET = "\033[0m"
+
 
 class DataFile:
     """
@@ -100,14 +107,17 @@ class DartBoard:
         pass
 
 
-def throw_dart() -> tuple[int, int]:
+def throw_dart() -> tuple[float, float]:
     """
     Returns the coordinates of the dart.
 
     Returns:
         The coordinates of the dart.
     """
-    pass
+    x: float = random.uniform(-1.0, 1.0)
+    y: float = random.uniform(-1.0, 1.0)
+
+    return (x, y)
 
 
 def print_results(
@@ -127,7 +137,7 @@ def print_results(
     pass
 
 
-def progress_bar(no_of_completed: int, total: int, error_status: bool = False) -> None:
+def print_progress_bar(no_of_completed: int, total: int) -> None:
     """
     A progress bar that prints to the console.
 
@@ -136,7 +146,29 @@ def progress_bar(no_of_completed: int, total: int, error_status: bool = False) -
         total: The total number of tasks.
         error_status: The status of the error.
     """
-    pass
+    # Color variables
+    global COLOR_GREEN, COLOR_ORANGE
+    # Progress bar constants
+    progress_bar_length: int = 100
+
+    progress_color: str = COLOR_ORANGE
+    progress_percentage: float = (no_of_completed * 100) / total
+    progress_message: str = f"Loading {'.'* (int(progress_percentage)%4)}"
+    progress_end_char: str = "\r"
+
+    if progress_percentage == 100:
+        progress_color: str = COLOR_GREEN
+        progress_percentage: float = 100.0
+        progress_message: str = "Done ✓"
+        progress_end_char: str = "\n"
+
+    progress_completion_bar_length: int = int(
+        progress_percentage / 100 * progress_bar_length
+    )
+
+    progress_bar: str = f"{progress_color}{progress_message: <12} [{'#'*progress_completion_bar_length}{' '*(progress_bar_length-progress_completion_bar_length)}] {progress_percentage:.2f}%"
+
+    print(progress_bar, end=progress_end_char)
 
 
 def main():
