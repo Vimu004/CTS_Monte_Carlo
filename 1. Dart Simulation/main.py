@@ -82,11 +82,11 @@ class DartBoard:
     A class for handling operations of the dart board.
     """
 
-    dart_board_radius: int
+    dart_board_radius: float
     dart_board_center: tuple[int, int]
 
     def __init__(
-        self, *, dart_board_radius: int, dart_board_center: tuple[int, int] = (0, 0)
+        self, dart_board_radius: int, dart_board_center: tuple[int, int] = (0, 0)
     ) -> None:
         """
         The constructor of the class.
@@ -104,8 +104,12 @@ class DartBoard:
         Returns:
             True if the dart hits the circle, False otherwise.
         """
-        pass
-
+        point=throw_dart(self)
+        range=(point[0]**2+point[1]**2)**0.5
+        if(range<=self.dart_board_radius):
+            return True,point
+        else:
+            return False
 
 def throw_dart() -> tuple[float, float]:
     """
@@ -122,7 +126,7 @@ def throw_dart() -> tuple[float, float]:
 
 def print_results(
     *,
-    total: int,
+    darts_total: int,
     hits: int,
     misses: int,
 ) -> None:
@@ -135,6 +139,15 @@ def print_results(
         misses: The number of darts that missed the circle.
     """
     pass
+
+def run_simulation(darts_total):
+    hits=0
+    for i in range(darts_total):
+        obj=DartBoard(1.0)
+        if(obj.is_dart_hit()):
+            hits+=1
+    pi=(hits/darts_total)*4
+    return pi
 
 
 def print_progress_bar(no_of_completed: int, total: int) -> None:
@@ -175,7 +188,8 @@ def main():
     """
     The main function of the program.
     """
-    pass
+    print("The value of PI:",run_simulation(1000))
+
 
 
 # Runs the main function.
