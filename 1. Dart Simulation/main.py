@@ -94,7 +94,7 @@ class DartBoard:
         self.dart_board_radius = dart_board_radius
         self.dart_board_center = dart_board_center
 
-    def is_dart_hit(self, dart_coordinate: tuple[int, int]) -> bool:
+    def is_dart_hit(self) -> bool:
         """
         Checks if the dart hits the circle.
 
