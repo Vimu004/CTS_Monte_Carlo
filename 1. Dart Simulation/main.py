@@ -104,7 +104,7 @@ class DartBoard:
         Returns:
             True if the dart hits the circle, False otherwise.
         """
-        point=throw_dart(self)
+        point=throw_dart()
         range=(point[0]**2+point[1]**2)**0.5
         if(range<=self.dart_board_radius):
             return True,point
