@@ -21,11 +21,14 @@ COLOR_PURPLE = "\033[95m"
 COLOR_RESET = "\033[0m"
 
 iteration_no: int = 0
+total_iterations: int = 0
+
 
 class IntervalThread(threading.Timer):
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
+
 
 class DataFile:
     """
@@ -112,17 +115,25 @@ class DartBoard:
         Returns:
             True if the dart hits the circle, False otherwise.
         """
-        point=throw_dart()
-        range=(point[0]**2+point[1]**2)**0.5
-        if(range<=self.dart_board_radius):
-            return True,point
+        point = throw_dart()
+        distance = (point[0] ** 2 + point[1] ** 2) ** 0.5
+        self.__total_darts += 1
+        if distance <= self.dart_board_radius:
+            self.__hit_count += 1
+            return True
         else:
             return False
 
+    def __pi_calculation() -> float:
+        """
+        Calculates the value of pi.
+        """
+        pi = (self.__hit_count / self.__total_darts) * 4
+        return pi
+
     def print_result_summary(
-         do_export: bool = False, 
-         csv_obj: DataFile = None
-        ): -> None:
+        self, do_export: bool = False, csv_obj: DataFile = None
+    ) -> None:
         """
         Prints the summary of the simulation.
         """
@@ -141,35 +152,38 @@ def throw_dart() -> tuple[float, float]:
 
     return (x, y)
 
+
 def run_simulation(darts_total):
     """
     Does the simulation.
     """
-    hits=0
+    global iteration_no
+    print_progress_bar()
+    progress_thread = IntervalThread(1.0, print_progress_bar)
+    progress_thread.start()
+
     obj = DartBoard(1.0)
     for i in range(darts_total):
-        if(obj.is_dart_hit(throw_dart())):
-            hits+=1
-    pi=(hits/darts_total)*4
-    return pi
+        iteration_no += 1
+        obj.is_dart_hit(throw_dart())
+    progress_thread.cancel()
+    print_progress_bar()
+
+    obj.print_result_summary()
 
 
-def print_progress_bar(no_of_completed: int, total: int) -> None:
+def print_progress_bar() -> None:
     """
     A progress bar that prints to the console.
-
-    Args:
-        no_of_completed: The number of completed tasks.
-        total: The total number of tasks.
-        error_status: The status of the error.
     """
     # Color variables
     global COLOR_GREEN, COLOR_ORANGE
+    global iteration_no, total_iterations
     # Progress bar constants
     progress_bar_length: int = 100
 
     progress_color: str = COLOR_ORANGE
-    progress_percentage: float = (no_of_completed * 100) / total
+    progress_percentage: float = (iteration_no * 100) / total_iterations
     progress_message: str = f"Loading {'.'* (int(progress_percentage)%4)}"
     progress_end_char: str = "\r"
 
@@ -183,7 +197,7 @@ def print_progress_bar(no_of_completed: int, total: int) -> None:
         progress_percentage / 100 * progress_bar_length
     )
 
-    progress_bar: str = f"{progress_color}{progress_message: <12} [{'#'*progress_completion_bar_length}{' '*(progress_bar_length-progress_completion_bar_length)}] {progress_percentage:.2f}%"
+    progress_bar: str = f"{progress_color}{progress_message: <12} [{'#'*progress_completion_bar_length :<{progress_bar_length}}] {progress_percentage:.2f}%"
 
     print(progress_bar, end=progress_end_char)
 
@@ -192,8 +206,11 @@ def main():
     """
     The main function of the program.
     """
-    print("The value of PI:",run_simulation(1000))
+    global total_iterations
 
+    total_iterations = int(input("The number of darts to throw: "))
+
+    run_simulation(total_iterations)
 
 
 # Runs the main function.
