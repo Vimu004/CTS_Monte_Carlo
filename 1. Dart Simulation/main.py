@@ -20,6 +20,12 @@ COLOR_RED = "\033[91m"
 COLOR_PURPLE = "\033[95m"
 COLOR_RESET = "\033[0m"
 
+iteration_no: int = 0
+
+class IntervalThread(threading.Timer):
+    def run(self):
+        while not self.finished.wait(self.interval):
+            self.function(*self.args, **self.kwargs)
 
 class DataFile:
     """
@@ -84,6 +90,8 @@ class DartBoard:
 
     dart_board_radius: float
     dart_board_center: tuple[int, int]
+    __total_darts: int = 0
+    __hit_count: int = 0
 
     def __init__(
         self, dart_board_radius: float, dart_board_center: tuple[int, int] = (0, 0)
@@ -94,7 +102,7 @@ class DartBoard:
         self.dart_board_radius = dart_board_radius
         self.dart_board_center = dart_board_center
 
-    def is_dart_hit(self) -> bool:
+    def is_dart_hit(self, dart_coordinate: tuple[float, float]) -> bool:
         """
         Checks if the dart hits the circle.
 
@@ -114,10 +122,11 @@ class DartBoard:
     def print_result_summary(
          do_export: bool = False, 
          csv_obj: DataFile = None
-    ): -> None:
-    """
-    Prints the summary of the simulation.
-    """
+        ): -> None:
+        """
+        Prints the summary of the simulation.
+        """
+        pass
 
 
 def throw_dart() -> tuple[float, float]:
@@ -137,9 +146,9 @@ def run_simulation(darts_total):
     Does the simulation.
     """
     hits=0
+    obj = DartBoard(1.0)
     for i in range(darts_total):
-        obj=DartBoard(1.0)
-        if(obj.is_dart_hit()):
+        if(obj.is_dart_hit(throw_dart())):
             hits+=1
     pi=(hits/darts_total)*4
     return pi
