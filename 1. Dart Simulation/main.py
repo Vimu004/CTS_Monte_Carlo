@@ -86,7 +86,7 @@ class DartBoard:
     dart_board_center: tuple[int, int]
 
     def __init__(
-        self, dart_board_radius: int, dart_board_center: tuple[int, int] = (0, 0)
+        self, dart_board_radius: float, dart_board_center: tuple[int, int] = (0, 0)
     ) -> None:
         """
         The constructor of the class.
@@ -111,6 +111,15 @@ class DartBoard:
         else:
             return False
 
+    def print_result_summary(
+         do_export: bool = False, 
+         csv_obj: DataFile = None
+    ): -> None:
+    """
+    Prints the summary of the simulation.
+    """
+
+
 def throw_dart() -> tuple[float, float]:
     """
     Returns the coordinates of the dart.
@@ -123,24 +132,10 @@ def throw_dart() -> tuple[float, float]:
 
     return (x, y)
 
-
-def print_results(
-    *,
-    darts_total: int,
-    hits: int,
-    misses: int,
-) -> None:
-    """
-    Prints the results of the simulation.
-
-    Args:
-        total: The total number of darts thrown.
-        hits: The number of darts that hit the circle.
-        misses: The number of darts that missed the circle.
-    """
-    pass
-
 def run_simulation(darts_total):
+    """
+    Does the simulation.
+    """
     hits=0
     for i in range(darts_total):
         obj=DartBoard(1.0)
