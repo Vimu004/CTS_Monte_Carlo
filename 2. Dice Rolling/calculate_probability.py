@@ -27,10 +27,10 @@ def calculate_probability(target_sum, num_dice):
     return probability
 
 
-target_sum = 32
-num_dice = 10
-
 if __name__ == "__main__":
+    target_sum = 32
+    num_dice = 10
+
     probability = calculate_probability(target_sum, num_dice)
     print(f"The probability of getting a sum of {target_sum} from {num_dice} dice throws is: {probability:.10f}")
     print(f"The probability of getting a sum of {target_sum} from {num_dice} dice throws is: {probability * 100:.2f}%")
