@@ -22,6 +22,7 @@ COLOR_RESET = "\033[0m"
 
 iteration_no: int = 0
 total_iterations: int = 0
+pi = 22/7
 
 
 class IntervalThread(threading.Timer):
@@ -43,6 +44,8 @@ class DataFile:
         "time",
         "dart_coordinate",
         "is_dart_hit",
+        "calculated_pi_value"
+        "difference_of_Calculated_and_real_piValue"
     ]
 
     def __init__(self, file_name: Optional[str]) -> None:
@@ -55,10 +58,9 @@ class DataFile:
         if file_name is None:
             file_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
 
-        self.file_name = f"{self.__file_folder}/{file_name}.csv"
-        self.__file = open(self.file_name, "w")
+        self.file_name = file_name
+        self.__file = open("C:\\Anusara\\Stat\\Monetecarlo\\CTS_Monte_Carlo\\data.csv", "w", newline='')
         self.__file_csv_writer = csv.writer(self.__file)
-
         self.__initialize_csv_headers()
 
     def __initialize_csv_headers(self) -> None:
@@ -124,11 +126,12 @@ class DartBoard:
         else:
             return False
 
-    def __pi_calculation() -> float:
+    def pi_calculation(self) -> float:
         """
         Calculates the value of pi.
         """
         pi = (self.__hit_count / self.__total_darts) * 4
+        
         return pi
 
     def print_result_summary(
@@ -136,7 +139,15 @@ class DartBoard:
     ) -> None:
         """
         Prints the summary of the simulation.
+
         """
+
+        print(f"\nTotal darts thrown: {self.__total_darts}")
+        print(f"Total darts hit: {self.__hit_count}")
+        print(f"Probability of hitting the dartboard: {self.__hit_count/self.__total_darts:.2f}\n")
+        print(f"Calculated Pi Value equals to : {self.pi_calculation()}")
+        print(f"Actual Pi Value equals to : {pi}\n")
+        print(f"Error Difference equals to : {self.pi_calculation() - pi}\n ")
         pass
 
 
@@ -152,6 +163,7 @@ def throw_dart() -> tuple[float, float]:
 
     return (x, y)
 
+objtoDataFile = DataFile("C:\\Anusara\\Stat\\Monetecarlo\\CTS_Monte_Carlo\\data.csv")
 
 def run_simulation(darts_total):
     """
@@ -162,15 +174,17 @@ def run_simulation(darts_total):
     progress_thread = IntervalThread(1.0, print_progress_bar)
     progress_thread.start()
 
-    obj = DartBoard(1.0)
+    obj = DartBoard(1.0, (0, 0) )
     for i in range(darts_total):
         iteration_no += 1
         obj.is_dart_hit(throw_dart())
+        calculated_pi_value = obj.pi_calculation()
+        objtoDataFile.write([iteration_no, datetime.now().strftime('%Y-%m-%d_%H-%M-%S'), throw_dart(), obj.is_dart_hit(throw_dart()),calculated_pi_value, calculated_pi_value - pi])
     progress_thread.cancel()
     print_progress_bar()
 
     obj.print_result_summary()
-
+    
 
 def print_progress_bar() -> None:
     """
@@ -207,10 +221,13 @@ def main():
     The main function of the program.
     """
     global total_iterations
-
-    total_iterations = int(input("The number of darts to throw: "))
-
+    file_path = input("Enter the path of the file you want to save: ")
+    total_iterations = int(input("\nThe number of darts to throw: "))
+    data_headers_for_csv = ["id", "time", "dart_coordinate", "is_dart_hit", "pi_value", "error_difference"]
+    data_file = DataFile(file_path)
+    data_file.write(data_headers_for_csv)
     run_simulation(total_iterations)
+    data_file.close_file()
 
 
 # Runs the main function.
