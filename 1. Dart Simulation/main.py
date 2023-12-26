@@ -59,7 +59,7 @@ class DataFile:
             file_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
 
         self.file_name = file_name
-        self.__file = open("C:\\Anusara\\Stat\\Monetecarlo\\CTS_Monte_Carlo\\data.csv", "w", newline='')
+        self.__file = open(f"{self.file_name}", "w", newline='')
         self.__file_csv_writer = csv.writer(self.__file)
         self.__initialize_csv_headers()
 
