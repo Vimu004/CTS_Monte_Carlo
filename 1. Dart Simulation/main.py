@@ -5,13 +5,13 @@ import csv
 import random
 import threading
 from math import pi as PI
-from time import perf_counter
+import os
 from datetime import datetime
 
 if TYPE_CHECKING:
     import _csv
     from io import TextIOWrapper
-    from typing import Optional, Literal, Union
+    from typing import Optional, Union
 
 COLOR_ORANGE = "\033[93m"
 COLOR_BLUE = "\033[94m"
@@ -22,7 +22,7 @@ COLOR_RESET = "\033[0m"
 
 iteration_no: int = 0
 total_iterations: int = 0
-pi = 22/7
+objtoDataFile: DataFile = None
 
 
 class IntervalThread(threading.Timer):
@@ -41,25 +41,27 @@ class DataFile:
     __file_csv_writer: _csv._writer
     __data_headers: list[str] = [  # The headers of the CSV file.
         "id",
-        "time",
         "dart_coordinate",
-        "is_dart_hit",
-        "calculated_pi_value"
-        "difference_of_Calculated_and_real_piValue"
+        "Is dart hit",
+        "Calculated PI value",
+        "Error difference"
     ]
 
-    def __init__(self, file_name: Optional[str]) -> None:
+    def __init__(self, file_name: Optional[str] = None) -> None:
         """
         The constructor of the class.
 
         Args:
             file_name: The name of the file.
         """
-        if file_name is None:
+        if file_name is None or file_name == "":
             file_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+        
+        if os.path.exists(self.__file_folder) is False:
+            os.mkdir(self.__file_folder)
 
         self.file_name = file_name
-        self.__file = open(f"{self.file_name}", "w", newline='')
+        self.__file = open(f"{self.__file_folder}/{self.file_name}.csv", "w")
         self.__file_csv_writer = csv.writer(self.__file)
         self.__initialize_csv_headers()
 
@@ -117,7 +119,7 @@ class DartBoard:
         Returns:
             True if the dart hits the circle, False otherwise.
         """
-        point = throw_dart()
+        point = dart_coordinate
         distance = (point[0] ** 2 + point[1] ** 2) ** 0.5
         self.__total_darts += 1
         if distance <= self.dart_board_radius:
@@ -141,14 +143,26 @@ class DartBoard:
         Prints the summary of the simulation.
 
         """
+        calculated_pi_value = self.pi_calculation()
 
         print(f"\nTotal darts thrown: {self.__total_darts}")
         print(f"Total darts hit: {self.__hit_count}")
-        print(f"Probability of hitting the dartboard: {self.__hit_count/self.__total_darts:.2f}\n")
-        print(f"Calculated Pi Value equals to : {self.pi_calculation()}")
-        print(f"Actual Pi Value equals to : {pi}\n")
-        print(f"Error Difference equals to : {self.pi_calculation() - pi}\n ")
-        pass
+        print(f"Probability of hitting the dartboard: {self.__hit_count/self.__total_darts :.2f}\n")
+        print(f"Calculated Pi Value equals to : {calculated_pi_value}")
+        print(f"Actual Pi Value equals to : {PI}\n")
+        print(f"Error Difference equals to : {calculated_pi_value - PI}\n ")
+
+        if do_export:
+            if csv_obj is None:
+                raise ValueError("The CSV object cannot be None.")
+            
+            csv_obj.write("")
+            csv_obj.write(f"Total darts thrown: {self.__total_darts}")
+            csv_obj.write(f"Total darts hit: {self.__hit_count}")
+            csv_obj.write(f"Probability of hitting the dartboard: {self.__hit_count/self.__total_darts :.2f}")
+            csv_obj.write(f"Calculated Pi Value equals to : {calculated_pi_value}")
+            csv_obj.write(f"Actual Pi Value equals to : {PI}")
+            csv_obj.write(f"Error Difference equals to : {calculated_pi_value - PI}")
 
 
 def throw_dart() -> tuple[float, float]:
@@ -163,13 +177,12 @@ def throw_dart() -> tuple[float, float]:
 
     return (x, y)
 
-objtoDataFile = DataFile("C:\\Anusara\\Stat\\Monetecarlo\\CTS_Monte_Carlo\\data.csv")
-
 def run_simulation(darts_total):
     """
     Does the simulation.
     """
-    global iteration_no
+    global iteration_no, objtoDataFile
+
     print_progress_bar()
     progress_thread = IntervalThread(1.0, print_progress_bar)
     progress_thread.start()
@@ -177,13 +190,14 @@ def run_simulation(darts_total):
     obj = DartBoard(1.0, (0, 0) )
     for i in range(darts_total):
         iteration_no += 1
-        obj.is_dart_hit(throw_dart())
+        dart_coordinates = throw_dart()
+        dart_status = obj.is_dart_hit(dart_coordinates)
         calculated_pi_value = obj.pi_calculation()
-        objtoDataFile.write([iteration_no, datetime.now().strftime('%Y-%m-%d_%H-%M-%S'), throw_dart(), obj.is_dart_hit(throw_dart()),calculated_pi_value, calculated_pi_value - pi])
+        objtoDataFile.write([iteration_no, dart_coordinates, dart_status, calculated_pi_value, calculated_pi_value - PI])
     progress_thread.cancel()
     print_progress_bar()
 
-    obj.print_result_summary()
+    obj.print_result_summary(do_export=True, csv_obj=objtoDataFile)
     
 
 def print_progress_bar() -> None:
@@ -220,14 +234,14 @@ def main():
     """
     The main function of the program.
     """
-    global total_iterations
-    file_path = input("Enter the path of the file you want to save: ")
-    total_iterations = int(input("\nThe number of darts to throw: "))
-    data_headers_for_csv = ["id", "time", "dart_coordinate", "is_dart_hit", "pi_value", "error_difference"]
-    data_file = DataFile(file_path)
-    data_file.write(data_headers_for_csv)
+    global total_iterations, objtoDataFile
+    
+    file_name = input("\nEnter the name of the file you want to export to (Optional): ")
+    total_iterations = int(input("The number of darts to throw: "))
+
+    objtoDataFile = DataFile(file_name)
     run_simulation(total_iterations)
-    data_file.close_file()
+    objtoDataFile.close_file()
 
 
 # Runs the main function.
