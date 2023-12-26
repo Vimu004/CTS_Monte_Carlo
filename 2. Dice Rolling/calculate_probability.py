@@ -16,11 +16,11 @@ def count_ways_to_sum(target_sum, num_dice, memo={}):
 
 
 def calculate_probability(target_sum, num_dice):
-    total_outcomes = 6 ** num_dice
+    total_outcomes = 6**num_dice
 
     favorable_outcomes = count_ways_to_sum(target_sum, num_dice)
 
-    print("The number of attempts that sum up to 32:", favorable_outcomes)
+    print("\nThe number of attempts that sum up to 32:", favorable_outcomes)
 
     probability = favorable_outcomes / total_outcomes
 
@@ -28,9 +28,13 @@ def calculate_probability(target_sum, num_dice):
 
 
 if __name__ == "__main__":
-    target_sum = 32
-    num_dice = 10
+    target_sum = int(input("\nEnter the target sum(Ex:- 32): "))
+    num_dice = int(input("Enter the number of dice to roll(Ex:- 10): "))
 
     probability = calculate_probability(target_sum, num_dice)
-    print(f"The probability of getting a sum of {target_sum} from {num_dice} dice throws is: {probability:.10f}")
-    print(f"The probability of getting a sum of {target_sum} from {num_dice} dice throws is: {probability * 100:.2f}%")
+    print(
+        f"The probability of getting a sum of {target_sum} from {num_dice} dice throws is: {probability:.10f}"
+    )
+    print(
+        f"The probability of getting a sum of {target_sum} from {num_dice} dice throws as a percentage: {probability * 100:.2f}%"
+    )
