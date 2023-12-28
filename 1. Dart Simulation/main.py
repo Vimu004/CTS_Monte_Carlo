@@ -160,14 +160,19 @@ class DartBoard:
                 raise ValueError("The CSV object cannot be None.")
 
             csv_obj.write("")
-            csv_obj.write(f"Total darts thrown: {self.__total_darts}")
-            csv_obj.write(f"Total darts hit: {self.__hit_count}")
+            csv_obj.write(["Total darts thrown", self.__total_darts])
+            csv_obj.write(["Total darts hit", self.__hit_count])
             csv_obj.write(
-                f"Probability of hitting the dartboard: {self.__hit_count/self.__total_darts :.2f}"
+                [
+                    "Probability of hitting the dartboard",
+                    f"{self.__hit_count/self.__total_darts :.2f}",
+                ]
             )
-            csv_obj.write(f"Calculated Pi Value equals to : {calculated_pi_value}")
-            csv_obj.write(f"Actual Pi Value equals to : {PI}")
-            csv_obj.write(f"Error Difference equals to : {calculated_pi_value - PI}")
+            csv_obj.write("")
+            csv_obj.write(["Calculated Pi Value equals to", calculated_pi_value])
+            csv_obj.write(["Actual Pi Value equals to", PI])
+            csv_obj.write("")
+            csv_obj.write(["Error Difference equals to", calculated_pi_value - PI])
 
 
 def throw_dart() -> tuple[float, float]:
