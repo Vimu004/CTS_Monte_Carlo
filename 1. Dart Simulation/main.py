@@ -7,6 +7,7 @@ import threading
 from math import pi as PI
 import os
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 if TYPE_CHECKING:
     import _csv
@@ -182,12 +183,14 @@ def throw_dart() -> tuple[float, float]:
     return (x, y)
 
 
+
 def run_simulation(darts_total):
     """
     Does the simulation.
     """
     global iteration_no, objtoDataFile
 
+    calculated_pi_value_list = []
     print_progress_bar()
     progress_thread = IntervalThread(1.0, print_progress_bar)
     progress_thread.start()
@@ -198,6 +201,7 @@ def run_simulation(darts_total):
         dart_coordinates = throw_dart()
         dart_status = obj.is_dart_hit(dart_coordinates)
         calculated_pi_value = obj.pi_calculation()
+        calculated_pi_value_list.append(calculated_pi_value)
         objtoDataFile.write(
             [
                 iteration_no,
@@ -211,6 +215,22 @@ def run_simulation(darts_total):
     print_progress_bar()
 
     obj.print_result_summary(do_export=True, csv_obj=objtoDataFile)
+    
+    return calculated_pi_value_list
+
+def plot(pi_values: list):
+    
+    X_values_for_plot = range(total_iterations)
+    y_values = pi_values
+
+    plt.plot(X_values_for_plot,y_values)
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.axhline(y=22/7, color='red', linestyle='--', label='Real pi value')
+    
+    plt.legend()
+    plt.show()
+
 
 
 def print_progress_bar() -> None:
@@ -253,9 +273,9 @@ def main():
     total_iterations = int(input("The number of darts to throw: "))
 
     objtoDataFile = DataFile(file_name)
-    run_simulation(total_iterations)
+    plot(run_simulation(total_iterations))
     objtoDataFile.close_file()
-
+    
 
 # Runs the main function.
 if __name__ == "__main__":
