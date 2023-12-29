@@ -229,8 +229,8 @@ def plot(pi_values: list):
     y_values = pi_values
 
     plt.plot(X_values_for_plot,y_values)
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
+    plt.xlabel('Times (N)')
+    plt.ylabel('The value of Pi')
     plt.axhline(y=22/7, color='red', linestyle='--', label='Real pi value')
     
     plt.legend()
