@@ -5,6 +5,8 @@ import csv
 import random
 import threading
 from math import pi as PI
+import numpy as np
+import statistics as st
 import os
 from datetime import datetime
 import matplotlib.pyplot as plt
@@ -15,16 +17,19 @@ if TYPE_CHECKING:
     from typing import Optional, Union
 
 COLOR_ORANGE = "\033[93m"
-COLOR_BLUE = "\033[94m"
 COLOR_GREEN = "\033[92m"
-COLOR_RED = "\033[91m"
-COLOR_PURPLE = "\033[95m"
 COLOR_RESET = "\033[0m"
 
 iteration_no: int = 0
 total_iterations: int = 0
 objtoDataFile: DataFile = None
 
+col_data: np.array = np.array([
+    [],
+    [],
+    [],
+    []
+    ])
 
 class IntervalThread(threading.Timer):
     def run(self):
@@ -41,8 +46,9 @@ class DataFile:
     __file: TextIOWrapper
     __file_csv_writer: _csv._writer
     __data_headers: list[str] = [  # The headers of the CSV file.
-        "id",
-        "dart_coordinate",
+        "ID",
+        "Dart Coordinate(X)",
+        "Dart Coordinate(Y)",
         "Is dart hit",
         "Calculated PI value",
         "Error difference",
@@ -146,6 +152,13 @@ class DartBoard:
         """
         calculated_pi_value = self.pi_calculation()
 
+        print("")
+        print(f"{'Dart Coordinate(X)':<25}   {'Dart Coordinate(Y)':<25}   {'Calculated PI Value':<25}   {'Error difference':<25}")
+        print(f"Mode:{st.mode(col_data[0]):>20.5f}   Mode:{st.mode(col_data[1]):>20.5f}   Mode:{st.mode(col_data[2]):>20.5f}   Mode:{st.mode(col_data[3]):>20.5f}")
+        print(f"Mean:{st.mean(col_data[0]):>20.5f}   Mean:{st.mean(col_data[1]):>20.5f}   Mean:{st.mean(col_data[2]):>20.5f}   Mean:{st.mean(col_data[3]):>20.5f}")
+        print(f"Median:{st.median(col_data[0]):>18.5f}   Median:{st.median(col_data[1]):>18.5f}   Median:{st.median(col_data[2]):>18.5f}   Median:{st.median(col_data[3]):>18.5f}")
+        print(f"Std. Deviation:{st.stdev(col_data[0]):>10.5f}   Std. Deviation:{st.stdev(col_data[1]):>10.5f}   Std. Deviation:{st.stdev(col_data[2]):>10.5f}   Std. Deviation:{st.stdev(col_data[3]):>10.5f}")
+
         print(f"\nTotal darts thrown: {self.__total_darts}")
         print(f"Total darts hit: {self.__hit_count}")
         print(
@@ -159,6 +172,11 @@ class DartBoard:
             if csv_obj is None:
                 raise ValueError("The CSV object cannot be None.")
 
+            csv_obj.write("")
+            csv_obj.write(["Mode", st.mode(col_data[0]), st.mode(col_data[1]), "-", st.mode(col_data[2]), st.mode(col_data[3])])
+            csv_obj.write(["Mean", st.mean(col_data[0]), st.mean(col_data[1]), "-", st.mean(col_data[2]), st.mean(col_data[3])])
+            csv_obj.write(["Median", st.median(col_data[0]), st.median(col_data[1]), "-", st.median(col_data[2]), st.median(col_data[3])])
+            csv_obj.write(["Standard Deviation", st.stdev(col_data[0]), st.stdev(col_data[1]), "-", st.stdev(col_data[2]), st.stdev(col_data[3])])
             csv_obj.write("")
             csv_obj.write(["Total darts thrown", self.__total_darts])
             csv_obj.write(["Total darts hit", self.__hit_count])
@@ -193,7 +211,7 @@ def run_simulation(darts_total):
     """
     Does the simulation.
     """
-    global iteration_no, objtoDataFile
+    global iteration_no, objtoDataFile, col_data
 
     calculated_pi_value_list = []
     print_progress_bar()
@@ -207,10 +225,14 @@ def run_simulation(darts_total):
         dart_status = obj.is_dart_hit(dart_coordinates)
         calculated_pi_value = obj.pi_calculation()
         calculated_pi_value_list.append(calculated_pi_value)
+
+        row_data = np.array([dart_coordinates[0], dart_coordinates[1], calculated_pi_value, calculated_pi_value - PI])
+        col_data = np.hstack([col_data, row_data.reshape(-1, 1)])
+
         objtoDataFile.write(
             [
                 iteration_no,
-                dart_coordinates,
+                *dart_coordinates,
                 dart_status,
                 calculated_pi_value,
                 calculated_pi_value - PI,
