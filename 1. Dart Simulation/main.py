@@ -5,7 +5,6 @@ import csv
 import random
 import threading
 from math import pi as PI
-import numpy as np
 import statistics as st
 import os
 from datetime import datetime
@@ -23,13 +22,6 @@ COLOR_RESET = "\033[0m"
 iteration_no: int = 0
 total_iterations: int = 0
 objtoDataFile: DataFile = None
-
-col_data: np.array = np.array([
-    [],
-    [],
-    [],
-    []
-    ])
 
 class IntervalThread(threading.Timer):
     def run(self):
@@ -144,7 +136,7 @@ class DartBoard:
         return pi
 
     def print_result_summary(
-        self, do_export: bool = False, csv_obj: DataFile = None
+        self, do_export: bool = False, csv_obj: DataFile = None, statistics: dict = {}
     ) -> None:
         """
         Prints the summary of the simulation.
@@ -153,11 +145,11 @@ class DartBoard:
         calculated_pi_value = self.pi_calculation()
 
         print("")
-        print(f"{'Dart Coordinate(X)':<25}   {'Dart Coordinate(Y)':<25}   {'Calculated PI Value':<25}   {'Error difference':<25}")
-        print(f"Mode:{st.mode(col_data[0]):>20.5f}   Mode:{st.mode(col_data[1]):>20.5f}   Mode:{st.mode(col_data[2]):>20.5f}   Mode:{st.mode(col_data[3]):>20.5f}")
-        print(f"Mean:{st.mean(col_data[0]):>20.5f}   Mean:{st.mean(col_data[1]):>20.5f}   Mean:{st.mean(col_data[2]):>20.5f}   Mean:{st.mean(col_data[3]):>20.5f}")
-        print(f"Median:{st.median(col_data[0]):>18.5f}   Median:{st.median(col_data[1]):>18.5f}   Median:{st.median(col_data[2]):>18.5f}   Median:{st.median(col_data[3]):>18.5f}")
-        print(f"Std. Deviation:{st.stdev(col_data[0]):>10.5f}   Std. Deviation:{st.stdev(col_data[1]):>10.5f}   Std. Deviation:{st.stdev(col_data[2]):>10.5f}   Std. Deviation:{st.stdev(col_data[3]):>10.5f}")
+        print("Calculated PI Value")
+        print(f"Mode:{statistics['mode']:>20.5f}")
+        print(f"Mean:{statistics['mean']:>20.5f}")
+        print(f"Median:{statistics['median']:>18.5f}")
+        print(f"Std. Deviation:{statistics['std_deviation']:>10.5f}")
 
         print(f"\nTotal darts thrown: {self.__total_darts}")
         print(f"Total darts hit: {self.__hit_count}")
@@ -173,10 +165,10 @@ class DartBoard:
                 raise ValueError("The CSV object cannot be None.")
 
             csv_obj.write("")
-            csv_obj.write(["Mode", st.mode(col_data[0]), st.mode(col_data[1]), "-", st.mode(col_data[2]), st.mode(col_data[3])])
-            csv_obj.write(["Mean", st.mean(col_data[0]), st.mean(col_data[1]), "-", st.mean(col_data[2]), st.mean(col_data[3])])
-            csv_obj.write(["Median", st.median(col_data[0]), st.median(col_data[1]), "-", st.median(col_data[2]), st.median(col_data[3])])
-            csv_obj.write(["Standard Deviation", st.stdev(col_data[0]), st.stdev(col_data[1]), "-", st.stdev(col_data[2]), st.stdev(col_data[3])])
+            csv_obj.write(["Mode", "-", "-", statistics["mode"], "-"])
+            csv_obj.write(["Mean", "-", "-", "-", statistics["mean"], "-"])
+            csv_obj.write(["Median", "-", "-", "-", statistics["median"], "-"])
+            csv_obj.write(["Standard Deviation", "-", "-", statistics["std_deviation"], "-"])
             csv_obj.write("")
             csv_obj.write(["Total darts thrown", self.__total_darts])
             csv_obj.write(["Total darts hit", self.__hit_count])
@@ -211,7 +203,7 @@ def run_simulation(darts_total):
     """
     Does the simulation.
     """
-    global iteration_no, objtoDataFile, col_data
+    global iteration_no, objtoDataFile
 
     calculated_pi_value_list = []
     print_progress_bar()
@@ -226,9 +218,6 @@ def run_simulation(darts_total):
         calculated_pi_value = obj.pi_calculation()
         calculated_pi_value_list.append(calculated_pi_value)
 
-        row_data = np.array([dart_coordinates[0], dart_coordinates[1], calculated_pi_value, calculated_pi_value - PI])
-        col_data = np.hstack([col_data, row_data.reshape(-1, 1)])
-
         objtoDataFile.write(
             [
                 iteration_no,
@@ -241,7 +230,14 @@ def run_simulation(darts_total):
     progress_thread.cancel()
     print_progress_bar()
 
-    obj.print_result_summary(do_export=True, csv_obj=objtoDataFile)
+    stats: dict[str, float] = {
+        "mode": st.mode(calculated_pi_value_list),
+        "mean": st.mean(calculated_pi_value_list),
+        "median": st.median(calculated_pi_value_list),
+        "std_deviation": st.stdev(calculated_pi_value_list),
+    }
+
+    obj.print_result_summary(do_export=True, csv_obj=objtoDataFile, statistics=stats)
     
     return calculated_pi_value_list
 
@@ -298,11 +294,10 @@ def main():
 
     file_name = input("\nEnter the name of the file you want to export to (Optional): ")
     total_iterations = int(input("The number of darts to throw: "))
-
+    
     objtoDataFile = DataFile(file_name)
     plot(run_simulation(total_iterations))
     objtoDataFile.close_file()
-    
 
 # Runs the main function.
 if __name__ == "__main__":
